@@ -51,7 +51,6 @@ static int get_caps(cudaVideoCodec codec_type,
                     cudaVideoChromaFormat chroma_format,
                     unsigned int bit_depth)
 {
-  CUresult err;
   CUVIDDECODECAPS caps;
   caps.eCodecType = codec_type;
   caps.eChromaFormat = chroma_format;
@@ -98,6 +97,9 @@ static int get_caps(cudaVideoCodec codec_type,
   case cudaVideoCodec_VP9:
     codec = "VP9";
     break;
+  default:
+    codec = "Unknown";
+    break;
   }
 
   const char *format;
@@ -126,7 +128,6 @@ int main(int argc, char *argv[])
 {
   CUcontext cuda_ctx;
   CUcontext dummy;
-  CUresult err;
 
   cuda_load_functions(&cu, NULL);
   cuvid_load_functions(&cv, NULL);
@@ -163,7 +164,7 @@ int main(int argc, char *argv[])
     for (int c = 0; c < cudaVideoCodec_NumCodecs; c++) {
       for (int f = 0; f < 4; f++) {
         for (int b = 8; b < 14; b += 2) {
-          err = get_caps(c, f, b);
+          get_caps(c, f, b);
         }
       }
     }
