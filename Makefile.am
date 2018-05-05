@@ -1,5 +1,5 @@
 bin_PROGRAMS = nvdecinfo
 
-nvdecinfo_CFLAGS = $(NVDECINFO_CFLAGS) -Werror -Wall
-nvdecinfo_LDADD = $(NVDECINFO_LIBS) $(LIBADD_DLOPEN)
+nvdecinfo_CFLAGS = $(NVVIDEOINFO_CFLAGS) -Werror -Wall
+nvdecinfo_LDADD = $(NVVIDEOINFO_LIBS) $(LIBADD_DLOPEN)
 nvdecinfo_SOURCES = nvdecinfo.c
