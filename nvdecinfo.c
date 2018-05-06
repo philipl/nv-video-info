@@ -158,7 +158,6 @@ int main(int argc, char *argv[])
     printf("-----------------------------------------------\n");
 
     CHECK_CU(cu->cuCtxCreate(&cuda_ctx, CU_CTX_SCHED_BLOCKING_SYNC, dev));
-    printf("NVDEC Capabilities:\n\n");
     printf("Codec | Chroma | Depth | Max Width | Max Height\n");
     printf("-----------------------------------------------\n");
     for (int c = 0; c < cudaVideoCodec_NumCodecs; c++) {
