@@ -1,5 +1,5 @@
 AC_PREREQ([2.69])
-AC_INIT(nv-video-info,[1.0],[philipl@overt.org],nvdecinfo)
+AC_INIT(nv-video-info,[1.0],[philipl@overt.org],nv-video-info)
 AM_INIT_AUTOMAKE([dist-bzip2 foreign])
 AM_MAINTAINER_MODE
 

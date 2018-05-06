@@ -35,3 +35,4 @@ INSTALL
 ABOUT-NLS
 config.rpath
 nvdecinfo
+nvencinfo
