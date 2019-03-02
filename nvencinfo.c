@@ -544,8 +544,12 @@ int main(int argc, char *argv[])
 {
   CUcontext cuda_ctx;
   CUcontext dummy;
+  int ret;
 
-  nvenc_load_libraries();
+  ret = nvenc_load_libraries();
+  if (ret < 0) {
+    return ret;
+  }
 
   CHECK_CU(cu->cuInit(0));
   int count;
