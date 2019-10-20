@@ -187,6 +187,7 @@ static const cap_t nvenc_caps[] = {
 #endif
   { NV_ENC_CAPS_SUPPORT_BFRAME_REF_MODE,        "Supports B-Frames as References" },
   { NV_ENC_CAPS_SUPPORT_EMPHASIS_LEVEL_MAP,     "Supports Emphasis Level Map" },
+  { NV_ENC_CAPS_SUPPORT_MULTIPLE_REF_FRAMES,    "Supports Multiple Reference Frames" },
 };
 
 static const struct {
@@ -246,7 +247,13 @@ static const struct {
 
 static void nvenc_print_driver_requirement()
 {
-#if NVENCAPI_CHECK_VERSION(8, 1)
+#if NVENCAPI_CHECK_VERSION(9, 1)
+# if defined(_WIN32) || defined(__CYGWIN__)
+    const char *minver = "436.15";
+# else
+    const char *minver = "435.21";
+# endif
+#elif NVENCAPI_CHECK_VERSION(8, 1)
 # if defined(_WIN32) || defined(__CYGWIN__)
     const char *minver = "390.77";
 # else
@@ -519,7 +526,7 @@ static int print_codecs(void *encoder)
 }
 
 
-static int print_nvenc_capabilities(CUcontext *cuda_ctx)
+static int print_nvenc_capabilities(CUcontext cuda_ctx)
 {
   NV_ENC_OPEN_ENCODE_SESSION_EX_PARAMS params = { 0 };
   NVENCSTATUS ret;
