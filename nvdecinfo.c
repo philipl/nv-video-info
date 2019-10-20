@@ -118,8 +118,30 @@ static int get_caps(cudaVideoCodec codec_type,
     break;
   }
 
-  printf("%5s | %6s | %5d | %9d | %10d\n",
-         codec, format, bit_depth, caps.nMaxWidth, caps.nMaxHeight);
+  const char *surface;
+  switch (caps.nOutputFormatMask) {
+  case 1 << cudaVideoSurfaceFormat_NV12:
+      surface = "NV12";
+      break;
+  case 1 << cudaVideoSurfaceFormat_P016:
+      surface = "P016";
+      break;
+  case 1 << cudaVideoSurfaceFormat_YUV444:
+      surface = "YUV444P";
+      break;
+  case 1 << cudaVideoSurfaceFormat_YUV444_16Bit:
+      surface = "YUV444P16";
+      break;
+  case (1 << cudaVideoSurfaceFormat_NV12) + (1 << cudaVideoSurfaceFormat_P016):
+      surface = "P016, NV12";
+      break;
+  default:
+      surface = "Unknown";
+      break;
+  }
+
+  printf("%5s | %6s | %5d | %9d | %10d | %15s\n",
+         codec, format, bit_depth, caps.nMaxWidth, caps.nMaxHeight, surface);
 
   return 0;
 }
@@ -155,11 +177,11 @@ int main(int argc, char *argv[])
     char name[255];
     CHECK_CU(cu->cuDeviceGetName(name, 255, dev));
     printf("Device %d: %s\n", i, name);
-    printf("-----------------------------------------------\n");
+    printf("-----------------------------------------------------------------\n");
 
     CHECK_CU(cu->cuCtxCreate(&cuda_ctx, CU_CTX_SCHED_BLOCKING_SYNC, dev));
-    printf("Codec | Chroma | Depth | Max Width | Max Height\n");
-    printf("-----------------------------------------------\n");
+    printf("Codec | Chroma | Depth | Max Width | Max Height | Surface Formats\n");
+    printf("-----------------------------------------------------------------\n");
     for (int c = 0; c < cudaVideoCodec_NumCodecs; c++) {
       for (int f = 0; f < 4; f++) {
         for (int b = 8; b < 14; b += 2) {
@@ -167,7 +189,7 @@ int main(int argc, char *argv[])
         }
       }
     }
-    printf("-----------------------------------------------\n\n");
+    printf("-----------------------------------------------------------------\n\n");
     cu->cuCtxPopCurrent(&dummy);
   }
 
