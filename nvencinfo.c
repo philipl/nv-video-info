@@ -217,7 +217,6 @@ static const struct {
   { &NV_ENC_H264_PROFILE_HIGH_GUID,               "High" },
   { &NV_ENC_H264_PROFILE_HIGH_444_GUID,           "High444" },
   { &NV_ENC_H264_PROFILE_STEREO_GUID,             "MVC" },
-  { &NV_ENC_H264_PROFILE_SVC_TEMPORAL_SCALABILTY, "SVC" },
   { &NV_ENC_H264_PROFILE_PROGRESSIVE_HIGH_GUID,   "Progressive High" },
   { &NV_ENC_H264_PROFILE_CONSTRAINED_HIGH_GUID,   "Constrained High" },
   { &NV_ENC_HEVC_PROFILE_MAIN_GUID,               "Main" },
@@ -239,6 +238,13 @@ static const struct {
   { &NV_ENC_PRESET_LOW_LATENCY_HP_GUID,      "llhp" },
   { &NV_ENC_PRESET_LOSSLESS_DEFAULT_GUID,    "lossless" },
   { &NV_ENC_PRESET_LOSSLESS_HP_GUID,         "losslesshp" },
+  { &NV_ENC_PRESET_P1_GUID,                  "p1" },
+  { &NV_ENC_PRESET_P2_GUID,                  "p2" },
+  { &NV_ENC_PRESET_P3_GUID,                  "p3" },
+  { &NV_ENC_PRESET_P4_GUID,                  "p4" },
+  { &NV_ENC_PRESET_P5_GUID,                  "p5" },
+  { &NV_ENC_PRESET_P6_GUID,                  "p6" },
+  { &NV_ENC_PRESET_P7_GUID,                  "p7" },
 };
 
 
@@ -357,10 +363,15 @@ static int get_profiles(void *encoder, GUID encodeGUID, const char **profiles, u
                                                FF_ARRAY_ELEMS(nvenc_profiles), count));
 
   for (int i = 0; i < *count; i++) {
+    int matched = 0;
     for (int j = 0; j < FF_ARRAY_ELEMS(nvenc_profiles); j++) {
       if (memcmp(&guids[i], nvenc_profiles[j].guid, sizeof (GUID)) == 0) {
         profiles[i] = nvenc_profiles[j].desc;
+        matched = 1;
       }
+    }
+    if (!matched) {
+      profiles[i] = "Unknown";
     }
   }
   return 0;
