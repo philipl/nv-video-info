@@ -238,7 +238,7 @@ static const struct {
   { &NV_ENC_PRESET_LOW_LATENCY_HP_GUID,      "llhp" },
   { &NV_ENC_PRESET_LOSSLESS_DEFAULT_GUID,    "lossless" },
   { &NV_ENC_PRESET_LOSSLESS_HP_GUID,         "losslesshp" },
-#if NVDECAPI_MAJOR_VERSION > 10
+#if NVENCAPI_MAJOR_VERSION > 10
   { &NV_ENC_PRESET_P1_GUID,                  "p1" },
   { &NV_ENC_PRESET_P2_GUID,                  "p2" },
   { &NV_ENC_PRESET_P3_GUID,                  "p3" },
