@@ -97,9 +97,11 @@ static int get_caps(cudaVideoCodec codec_type,
   case cudaVideoCodec_VP9:
     codec = "VP9";
     break;
+#if NVDECAPI_MAJOR_VERSION > 10
   case cudaVideoCodec_AV1:
     codec = "AV1";
     break;
+#endif
   default:
     codec = "Unknown";
     break;
