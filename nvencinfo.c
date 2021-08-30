@@ -145,6 +145,9 @@ static const cap_t nvenc_limits[] = {
   { NV_ENC_CAPS_LEVEL_MIN,                      "Min Encoding Level" },
   { NV_ENC_CAPS_NUM_MAX_BFRAMES,                "Max No. of B-Frames" },
   { NV_ENC_CAPS_NUM_MAX_LTR_FRAMES,             "Maxmimum LT Reference Frames" },
+#if NVENCAPI_MAJOR_VERSION > 10
+  { NV_ENC_CAPS_NUM_ENCODER_ENGINES,            "Number of Encoder Engines" },
+#endif
 };
 
 static const cap_t nvenc_caps[] = {
@@ -188,6 +191,10 @@ static const cap_t nvenc_caps[] = {
   { NV_ENC_CAPS_SUPPORT_BFRAME_REF_MODE,        "Supports B-Frames as References" },
   { NV_ENC_CAPS_SUPPORT_EMPHASIS_LEVEL_MAP,     "Supports Emphasis Level Map" },
   { NV_ENC_CAPS_SUPPORT_MULTIPLE_REF_FRAMES,    "Supports Multiple Reference Frames" },
+#if NVENCAPI_MAJOR_VERSION > 11 || (NVENCAPI_MAJOR_VERSION == 11 && NVENCAPI_MINOR_VERSION > 0)
+  { NV_ENC_CAPS_SUPPORT_ALPHA_LAYER_ENCODING,   "Supports Alpha Layer Encoding" },
+  { NV_ENC_CAPS_SINGLE_SLICE_INTRA_REFRESH,     "Supports Single Slice Intra Refresh" },
+#endif
 };
 
 static const struct {
@@ -340,16 +347,16 @@ static int print_formats(void *encoder, GUID *guids, int guid_count)
     free(formats);
   }
 
-  printf("        Input Buffer Formats       |          |          |\n");
-  printf("----------------------------------------------------------\n");
+  printf("        Input Buffer Formats        |           |           |\n");
+  printf("-------------------------------------------------------------\n");
   for (int i = 0; i < FF_ARRAY_ELEMS(nvenc_formats); i++) {
-    printf("%34s |", nvenc_formats[i].desc);
+    printf("%35s |", nvenc_formats[i].desc);
     for (int j = 0; j < guid_count; j++) {
-      printf("%9s |", (formats_for_guid[j] & nvenc_formats[i].fmt) ? "x" : ".");
+      printf("%10s |", (formats_for_guid[j] & nvenc_formats[i].fmt) ? "x" : ".");
     }
     printf("\n");
   }
-  printf("----------------------------------------------------------\n");
+  printf("-------------------------------------------------------------\n");
 
 
   free(formats_for_guid);
@@ -382,9 +389,9 @@ static int get_profiles(void *encoder, GUID encodeGUID, const char **profiles, u
 
 static int print_profiles(void *encoder, GUID *guids, int count)
 {
-  printf("----------------------------------------------------------\n");
-  printf("              Profiles             |          |          |\n");
-  printf("----------------------------------------------------------\n");
+  printf("-------------------------------------------------------------\n");
+  printf("              Profiles              |           |           |\n");
+  printf("-------------------------------------------------------------\n");
 
   const char *profileGuids[count][FF_ARRAY_ELEMS(nvenc_profiles)];
   uint32_t profileCount[count];
@@ -395,12 +402,12 @@ static int print_profiles(void *encoder, GUID *guids, int count)
 
   uint32_t max = MAX(profileCount[0], profileCount[1]);
   for (int i = 0; i < max; i++) {
-    printf("%34s |", "");
+    printf("%35s |", "");
     for (int j = 0; j < count; j++) {
       if (i < profileCount[j]) {
-        printf("%9s |", profileGuids[j][i]);
+        printf("%10s |", profileGuids[j][i]);
       } else {
-        printf("%9s |", "");
+        printf("%10s |", "");
       }
     }
     printf("\n");
@@ -434,9 +441,9 @@ static int get_presets(void *encoder, GUID encodeGUID, const char **presets, uin
 
 static int print_presets(void *encoder, GUID *guids, int count)
 {
-  printf("----------------------------------------------------------\n");
-  printf("               Presets             |          |          |\n");
-  printf("----------------------------------------------------------\n");
+  printf("-------------------------------------------------------------\n");
+  printf("               Presets              |           |           |\n");
+  printf("-------------------------------------------------------------\n");
 
   const char *presetGuids[count][FF_ARRAY_ELEMS(nvenc_presets)];
   uint32_t presetCount[count];
@@ -447,12 +454,12 @@ static int print_presets(void *encoder, GUID *guids, int count)
 
   uint32_t max = MAX(presetCount[0], presetCount[1]);
   for (int i = 0; i < max; i++) {
-    printf("%34s |", "");
+    printf("%35s |", "");
     for (int j = 0; j < count; j++) {
       if (i < presetCount[j]) {
-        printf("%9s |", presetGuids[j][i]);
+        printf("%10s |", presetGuids[j][i]);
       } else {
-        printf("%9s |", "");
+        printf("%10s |", "");
       }
     }
     printf("\n");
@@ -479,25 +486,25 @@ static int print_caps(void *encoder, GUID *guids, int count)
 {
   int ret;
 
-  printf("               Limits              |          |          |\n");
-  printf("----------------------------------------------------------\n");
+  printf("              Limits                |           |           |\n");
+  printf("-------------------------------------------------------------\n");
   for (int i = 0; i < FF_ARRAY_ELEMS(nvenc_limits); i++) {
-    printf("%34s |", nvenc_limits[i].desc);
+    printf("%35s |", nvenc_limits[i].desc);
     for (int j = 0; j < count; j++) {
       ret = get_cap(encoder, &guids[j], nvenc_limits[i].cap);
-      printf("%9d |", ret);
+      printf("%10d |", ret);
     }
     printf("\n");
   }
 
-  printf("----------------------------------------------------------\n");
-  printf("            Capabilities           |          |          |\n");
-  printf("----------------------------------------------------------\n");
+  printf("-------------------------------------------------------------\n");
+  printf("            Capabilities            |           |           |\n");
+  printf("-------------------------------------------------------------\n");
   for (int i = 0; i < FF_ARRAY_ELEMS(nvenc_caps); i++) {
-    printf("%34s |", nvenc_caps[i].desc);
+    printf("%35s |", nvenc_caps[i].desc);
     for (int j = 0; j < count; j++) {
       ret = get_cap(encoder, &guids[j], nvenc_caps[i].cap);
-      printf("%9d |", ret);
+      printf("%10d |", ret);
     }
     printf("\n");
   }
@@ -516,18 +523,18 @@ static int print_codecs(void *encoder)
 
   CHECK_NV(nv_funcs.nvEncGetEncodeGUIDs(encoder, guids, count, &count));
 
-  printf("==========================================================\n");
-  printf("                             Codec |");
+  printf("=============================================================\n");
+  printf("                              Codec |");
   for (int i = 0; i < count; i++) {
     if (memcmp(&guids[i], &NV_ENC_CODEC_H264_GUID, 16) == 0) {
-      printf("   H264   |");
+      printf("    H264   |");
     } else if (memcmp(&guids[i], &NV_ENC_CODEC_HEVC_GUID, 16) == 0) {
-      printf("   HEVC   |");
+      printf("    HEVC   |");
     } else {
-      printf(" Unknown  |");
+      printf("  Unknown  |");
     }
   }
-  printf("\n==========================================================\n");
+  printf("\n=============================================================\n");
   CHECK_NV(print_formats(encoder, guids, count));
   CHECK_NV(print_caps(encoder, guids, count));
   CHECK_NV(print_profiles(encoder, guids, count));
@@ -585,7 +592,7 @@ int main(int argc, char *argv[])
 
     CHECK_CU(cu->cuCtxCreate(&cuda_ctx, CU_CTX_SCHED_BLOCKING_SYNC, dev));
     print_nvenc_capabilities(cuda_ctx);
-    printf("==========================================================\n\n");
+    printf("=============================================================\n\n");
     cu->cuCtxPopCurrent(&dummy);
   }
 
