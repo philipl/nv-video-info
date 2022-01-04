@@ -513,7 +513,6 @@ static int print_codecs(void *encoder)
   }
 
   CHECK_NV(nv_funcs.nvEncGetEncodeGUIDs(encoder, guids, count, &count));
-  count = 1;
 
   printf("=============================================================\n");
   printf("                              Codec |");
