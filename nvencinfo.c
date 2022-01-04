@@ -99,16 +99,6 @@ static int nvenc_map_error(NVENCSTATUS err, const char **desc)
     return -1;
 }
 
-static int nvenc_print_error(NVENCSTATUS err,
-                             const char *error_string)
-{
-  const char *desc;
-  int ret;
-  ret = nvenc_map_error(err, &desc);
-  printf("%s: %s (%d)\n", error_string, desc, err);
-  return ret;
-}
-
 static int check_nv(NVENCSTATUS err, const char *func)
 {
   const char *err_string;
@@ -286,7 +276,6 @@ static void nvenc_print_driver_requirement()
 
 static int nvenc_load_libraries()
 {
-  NVENCSTATUS err;
   uint32_t nvenc_max_ver;
   int ret;
 
@@ -331,7 +320,7 @@ static int print_formats(void *encoder, GUID *guids, int guid_count)
   }
 
   for (int i = 0; i < guid_count; i++) {
-    int count = 0;
+    uint32_t count = 0;
     CHECK_NV(nv_funcs.nvEncGetInputFormatCount(encoder, guids[i], &count));
 
     NV_ENC_BUFFER_FORMAT *formats = malloc(count * sizeof(NV_ENC_BUFFER_FORMAT));
@@ -395,12 +384,13 @@ static int print_profiles(void *encoder, GUID *guids, int count)
 
   const char *profileGuids[count][FF_ARRAY_ELEMS(nvenc_profiles)];
   uint32_t profileCount[count];
+  uint32_t max = 0;
 
   for (int i = 0; i < count; i++) {
     get_profiles(encoder, guids[i], profileGuids[i], &profileCount[i]);
+    max = MAX(max, profileCount[i]);
   }
 
-  uint32_t max = MAX(profileCount[0], profileCount[1]);
   for (int i = 0; i < max; i++) {
     printf("%35s |", "");
     for (int j = 0; j < count; j++) {
@@ -447,12 +437,13 @@ static int print_presets(void *encoder, GUID *guids, int count)
 
   const char *presetGuids[count][FF_ARRAY_ELEMS(nvenc_presets)];
   uint32_t presetCount[count];
+  uint32_t max = 0;
 
   for (int i = 0; i < count; i++) {
     get_presets(encoder, guids[i], presetGuids[i], &presetCount[i]);
+    max = MAX(max, presetCount[i]);
   }
 
-  uint32_t max = MAX(presetCount[0], presetCount[1]);
   for (int i = 0; i < max; i++) {
     printf("%35s |", "");
     for (int j = 0; j < count; j++) {
@@ -484,14 +475,12 @@ static int get_cap(void *encoder, GUID *guid, NV_ENC_CAPS cap)
 
 static int print_caps(void *encoder, GUID *guids, int count)
 {
-  int ret;
-
   printf("              Limits                |           |           |\n");
   printf("-------------------------------------------------------------\n");
   for (int i = 0; i < FF_ARRAY_ELEMS(nvenc_limits); i++) {
     printf("%35s |", nvenc_limits[i].desc);
     for (int j = 0; j < count; j++) {
-      ret = get_cap(encoder, &guids[j], nvenc_limits[i].cap);
+      int ret = get_cap(encoder, &guids[j], nvenc_limits[i].cap);
       printf("%10d |", ret);
     }
     printf("\n");
@@ -503,17 +492,19 @@ static int print_caps(void *encoder, GUID *guids, int count)
   for (int i = 0; i < FF_ARRAY_ELEMS(nvenc_caps); i++) {
     printf("%35s |", nvenc_caps[i].desc);
     for (int j = 0; j < count; j++) {
-      ret = get_cap(encoder, &guids[j], nvenc_caps[i].cap);
+      int ret = get_cap(encoder, &guids[j], nvenc_caps[i].cap);
       printf("%10d |", ret);
     }
     printf("\n");
   }
+
+  return 0;
 }
 
 
 static int print_codecs(void *encoder)
 {
-  int count = 0;
+  uint32_t count = 0;
   CHECK_NV(nv_funcs.nvEncGetEncodeGUIDCount(encoder, &count));
 
   GUID *guids = malloc(count * sizeof(GUID));
@@ -522,6 +513,7 @@ static int print_codecs(void *encoder)
   }
 
   CHECK_NV(nv_funcs.nvEncGetEncodeGUIDs(encoder, guids, count, &count));
+  count = 1;
 
   printf("=============================================================\n");
   printf("                              Codec |");
@@ -549,7 +541,6 @@ static int print_codecs(void *encoder)
 static int print_nvenc_capabilities(CUcontext cuda_ctx)
 {
   NV_ENC_OPEN_ENCODE_SESSION_EX_PARAMS params = { 0 };
-  NVENCSTATUS ret;
   void *nvencoder;
 
   params.version    = NV_ENC_OPEN_ENCODE_SESSION_EX_PARAMS_VER;
