@@ -155,9 +155,18 @@ int main(int argc, char *argv[])
 {
   CUcontext cuda_ctx;
   CUcontext dummy;
+  int ret;
 
-  cuda_load_functions(&cu, NULL);
-  cuvid_load_functions(&cv, NULL);
+  ret = cuda_load_functions(&cu, NULL);
+  if (ret != 0) {
+    fprintf(stderr, "Failed to load CUDA functions.\n");
+    return -1;
+  }
+  ret = cuvid_load_functions(&cv, NULL);
+  if (ret != 0) {
+    fprintf(stderr, "Failed to load NVDEC functions.\n");
+    return -1;
+  }
 
   if (!cv->cuvidGetDecoderCaps) {
     fprintf(stderr,
