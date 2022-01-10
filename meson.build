@@ -8,6 +8,9 @@ project('nv-video-info',
         ]
 )
 
+cc = meson.get_compiler('c')
+cc.find_library('dl')
+
 ffnvcodec = dependency('ffnvcodec', version: '>= 9.1.23.0')
 
 executable('nvdecinfo', ['nvdecinfo.c'], dependencies: [ffnvcodec], install: true)
