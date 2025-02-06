@@ -81,6 +81,9 @@ static const struct {
     { NV_ENC_ERR_RESOURCE_REGISTER_FAILED, -1, "resource register failed" },
     { NV_ENC_ERR_RESOURCE_NOT_REGISTERED,  -1, "resource not registered"  },
     { NV_ENC_ERR_RESOURCE_NOT_MAPPED,      -1, "resource not mapped"      },
+#if NVENCAPI_MAJOR_VERSION > 12 || (NVENCAPI_MAJOR_VERSION == 12 && NVENCAPI_MINOR_VERSION > 0)
+    { NV_ENC_ERR_NEED_MORE_OUTPUT,         -1, "need more output"         },
+#endif
 };
 
 #define FF_ARRAY_ELEMS(a) (sizeof(a) / sizeof((a)[0]))
@@ -135,8 +138,13 @@ static const cap_t nvenc_limits[] = {
   { NV_ENC_CAPS_LEVEL_MIN,                      "Min Encoding Level" },
   { NV_ENC_CAPS_NUM_MAX_BFRAMES,                "Max No. of B-Frames" },
   { NV_ENC_CAPS_NUM_MAX_LTR_FRAMES,             "Maxmimum LT Reference Frames" },
+  { NV_ENC_CAPS_WIDTH_MIN,                      "Minimum Width" },
+  { NV_ENC_CAPS_HEIGHT_MIN,                     "Minimum Hight" },
 #if NVENCAPI_MAJOR_VERSION > 10
   { NV_ENC_CAPS_NUM_ENCODER_ENGINES,            "Number of Encoder Engines" },
+#endif
+#if NVENCAPI_MAJOR_VERSION > 12 || (NVENCAPI_MAJOR_VERSION == 12 && NVENCAPI_MINOR_VERSION > 1)
+  { NV_ENC_CAPS_SUPPORT_LOOKAHEAD_LEVEL,        "Maximum Lookahead Level"}
 #endif
 };
 
@@ -149,6 +157,7 @@ static const cap_t nvenc_caps[] = {
   { NV_ENC_CAPS_SUPPORT_BDIRECT_MODE,           "Supports BDirect Mode" },
   { NV_ENC_CAPS_SUPPORT_CABAC,                  "Supports CABAC" },
   { NV_ENC_CAPS_SUPPORT_ADAPTIVE_TRANSFORM,     "Supports Adaptive Transform" },
+  { NV_ENC_CAPS_SUPPORT_STEREO_MVC,             "Supports Stereo Multi-View Coding" },
   { NV_ENC_CAPS_NUM_MAX_TEMPORAL_LAYERS,        "Supports Temporal Layers" },
   { NV_ENC_CAPS_SUPPORT_HIERARCHICAL_PFRAMES,   "Supports Hierarchical P-Frames" },
   { NV_ENC_CAPS_SUPPORT_HIERARCHICAL_BFRAMES,   "Supports Hierarchical B-Frames" },
@@ -185,6 +194,20 @@ static const cap_t nvenc_caps[] = {
   { NV_ENC_CAPS_SUPPORT_ALPHA_LAYER_ENCODING,   "Supports Alpha Layer Encoding" },
   { NV_ENC_CAPS_SINGLE_SLICE_INTRA_REFRESH,     "Supports Single Slice Intra Refresh" },
 #endif
+#if NVENCAPI_MAJOR_VERSION > 12 || (NVENCAPI_MAJOR_VERSION == 12 && NVENCAPI_MINOR_VERSION > 0)
+  { NV_ENC_CAPS_DISABLE_ENC_STATE_ADVANCE,      "Supports encoding without advancing" },
+  { NV_ENC_CAPS_OUTPUT_RECON_SURFACE,           "Supports reconstructed output" },
+  { NV_ENC_CAPS_OUTPUT_BLOCK_STATS,             "Supports per-block output stats" },
+  { NV_ENC_CAPS_OUTPUT_ROW_STATS,               "Supports per-row output stats" },
+#endif
+#if NVENCAPI_MAJOR_VERSION > 12 || (NVENCAPI_MAJOR_VERSION == 12 && NVENCAPI_MINOR_VERSION > 1)
+  { NV_ENC_CAPS_SUPPORT_TEMPORAL_FILTER,        "Supports Temporal Filtering" },
+  { NV_ENC_CAPS_SUPPORT_UNIDIRECTIONAL_B,       "Supports Unidirectional B Frames "},
+#endif
+#if NVENCAPI_MAJOR_VERSION > 12
+  { NV_ENC_CAPS_SUPPORT_MVHEVC_ENCODE,          "Supports Multi-View HEVC Encoding" },
+  { NV_ENC_CAPS_SUPPORT_YUV422_ENCODE,          "Supports YUV422 Encoding" },
+#endif
 };
 
 static const struct {
@@ -202,6 +225,11 @@ static const struct {
   { NV_ENC_BUFFER_FORMAT_AYUV,         "AYUV" },
   { NV_ENC_BUFFER_FORMAT_ABGR,         "ABGR" },
   { NV_ENC_BUFFER_FORMAT_ABGR10,       "ABGR10" },
+  { NV_ENC_BUFFER_FORMAT_U8,           "U8" },
+#if NVENCAPI_MAJOR_VERSION > 12
+  { NV_ENC_BUFFER_FORMAT_NV16,         "NV16" },
+  { NV_ENC_BUFFER_FORMAT_P210,         "P210" },
+#endif
 };
 
 static const struct {
@@ -212,6 +240,10 @@ static const struct {
   { &NV_ENC_H264_PROFILE_BASELINE_GUID,           "Baseline" },
   { &NV_ENC_H264_PROFILE_MAIN_GUID,               "Main" },
   { &NV_ENC_H264_PROFILE_HIGH_GUID,               "High" },
+#if NVENCAPI_MAJOR_VERSION > 12
+  { &NV_ENC_H264_PROFILE_HIGH_10_GUID,            "High10" },
+  { &NV_ENC_H264_PROFILE_HIGH_422_GUID,           "High422" },
+#endif
   { &NV_ENC_H264_PROFILE_HIGH_444_GUID,           "High444" },
   { &NV_ENC_H264_PROFILE_STEREO_GUID,             "MVC" },
   { &NV_ENC_H264_PROFILE_PROGRESSIVE_HIGH_GUID,   "Progressive High" },
@@ -225,7 +257,7 @@ static const struct {
 };
 
 
-#if NVENCAPI_MAJOR_VERSION >= 12 && NVENCAPI_MINOR_VERSION >= 1
+#if NVENCAPI_MAJOR_VERSION > 12 || (NVENCAPI_MAJOR_VERSION == 12 && NVENCAPI_MINOR_VERSION >= 1)
 // =========================================================================================
 // *   Preset GUIDS supported by the NvEncodeAPI interface.
 // =========================================================================================
