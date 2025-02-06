@@ -140,6 +140,17 @@ static int get_caps(cudaVideoCodec codec_type,
   case (1 << cudaVideoSurfaceFormat_NV12) + (1 << cudaVideoSurfaceFormat_P016):
       surface = "P016, NV12";
       break;
+#if NVDECAPI_MAJOR_VERSION > 12
+  case 1 << cudaVideoSurfaceFormat_NV16:
+      surface = "NV16";
+      break;
+  case 1 << cudaVideoSurfaceFormat_P216:
+      surface = "P216";
+      break;
+  case (1 << cudaVideoSurfaceFormat_NV16) + (1 << cudaVideoSurfaceFormat_P216):
+      surface = "P216, NV16";
+      break;
+#endif
   default:
       surface = "Unknown";
       break;
