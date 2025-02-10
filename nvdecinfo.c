@@ -156,8 +156,9 @@ static int get_caps(cudaVideoCodec codec_type,
       break;
   }
 
-  printf("%5s | %6s | %5d | %9d | %10d | %15s\n",
-         codec, format, bit_depth, caps.nMaxWidth, caps.nMaxHeight, surface);
+  printf("%5s | %6s | %5d | %9d | %10d | %9d | %10d | %8d | %15s\n",
+         codec, format, bit_depth, caps.nMinWidth, caps.nMinHeight,
+         caps.nMaxWidth, caps.nMaxHeight, caps.nMaxMBCount, surface);
 
   return 0;
 }
@@ -202,11 +203,11 @@ int main(int argc, char *argv[])
     char name[255];
     CHECK_CU(cu->cuDeviceGetName(name, 255, dev));
     printf("Device %d: %s\n", i, name);
-    printf("-----------------------------------------------------------------\n");
+    printf("-----------------------------------------------------------------------------------------------------\n");
 
     CHECK_CU(cu->cuCtxCreate(&cuda_ctx, CU_CTX_SCHED_BLOCKING_SYNC, dev));
-    printf("Codec | Chroma | Depth | Max Width | Max Height | Surface Formats\n");
-    printf("-----------------------------------------------------------------\n");
+    printf("Codec | Chroma | Depth | Min Width | Min Height | Max Width | Max Height |  Max MBs | Surface Formats\n");
+    printf("-----------------------------------------------------------------------------------------------------\n");
     for (int c = 0; c < cudaVideoCodec_NumCodecs; c++) {
       for (int f = 0; f < 4; f++) {
         for (int b = 8; b < 14; b += 2) {
@@ -214,7 +215,7 @@ int main(int argc, char *argv[])
         }
       }
     }
-    printf("-----------------------------------------------------------------\n\n");
+    printf("-----------------------------------------------------------------------------------------------------\n\n");
     cu->cuCtxPopCurrent(&dummy);
   }
 
