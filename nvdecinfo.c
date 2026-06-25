@@ -18,6 +18,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 #include <ffnvcodec/dynlink_loader.h>
 
@@ -123,42 +124,70 @@ static int get_caps(cudaVideoCodec codec_type,
     break;
   }
 
-  const char *surface;
-  switch (caps.nOutputFormatMask) {
-  case 1 << cudaVideoSurfaceFormat_NV12:
-      surface = "NV12";
-      break;
-  case 1 << cudaVideoSurfaceFormat_P016:
-      surface = "P016";
-      break;
-  case 1 << cudaVideoSurfaceFormat_YUV444:
-      surface = "YUV444P";
-      break;
-  case 1 << cudaVideoSurfaceFormat_YUV444_16Bit:
-      surface = "YUV444P16";
-      break;
-  case (1 << cudaVideoSurfaceFormat_NV12) + (1 << cudaVideoSurfaceFormat_P016):
-      surface = "P016, NV12";
-      break;
-#if NVDECAPI_MAJOR_VERSION > 12
-  case 1 << cudaVideoSurfaceFormat_NV16:
-      surface = "NV16";
-      break;
-  case 1 << cudaVideoSurfaceFormat_P216:
-      surface = "P216";
-      break;
-  case (1 << cudaVideoSurfaceFormat_NV16) + (1 << cudaVideoSurfaceFormat_P216):
-      surface = "P216, NV16";
-      break;
-#endif
-  default:
-      surface = "Unknown";
-      break;
-  }
+   char surface[256];
+   char opaque[256];
+   surface[0] = '\0';
+   opaque[0] = '\0';
 
-  printf("%5s | %6s | %5d | %9d | %10d | %9d | %10d | %8d | %15s\n",
-         codec, format, bit_depth, caps.nMinWidth, caps.nMinHeight,
-         caps.nMaxWidth, caps.nMaxHeight, caps.nMaxMBCount, surface);
+   if (caps.nOutputFormatMask & (1 << cudaVideoSurfaceFormat_NV12)) {
+       strcat(surface, ", NV12");
+   }
+   if (caps.nOutputFormatMask & (1 << cudaVideoSurfaceFormat_P016)) {
+       strcat(surface, ", P016");
+   }
+   if (caps.nOutputFormatMask & (1 << cudaVideoSurfaceFormat_YUV444)) {
+       strcat(surface, ", YUV444P");
+   }
+   if (caps.nOutputFormatMask & (1 << cudaVideoSurfaceFormat_YUV444_16Bit)) {
+       strcat(surface, ", YUV444P16");
+   }
+#if NVDECAPI_MAJOR_VERSION > 12
+   if (caps.nOutputFormatMask & (1 << cudaVideoSurfaceFormat_NV16)) {
+       strcat(surface, ", NV16");
+   }
+   if (caps.nOutputFormatMask & (1 << cudaVideoSurfaceFormat_P216)) {
+       strcat(surface, ", P216");
+   }
+#if NVDECAPI_MAJOR_VERSION > 13 || \
+    (NVDECAPI_MAJOR_VERSION == 13 && NVDECAPI_MINOR_VERSION > 0)
+   if (caps.nOutputFormatMask & (1 << cudaVideoSurfaceFormat_NV12_Opaque)) {
+       strcat(opaque, ", NV12");
+   }
+   if (caps.nOutputFormatMask & (1 << cudaVideoSurfaceFormat_P016_Opaque)) {
+       strcat(opaque, ", P016");
+   }
+   if (caps.nOutputFormatMask & (1 << cudaVideoSurfaceFormat_YUV444_Opaque)) {
+       strcat(opaque, ", YUV444P");
+   }
+   if (caps.nOutputFormatMask & (1 << cudaVideoSurfaceFormat_YUV444_16Bit_Opaque)) {
+       strcat(opaque, ", YUV444P16");
+   }
+   if (caps.nOutputFormatMask & (1 << cudaVideoSurfaceFormat_NV16_Opaque)) {
+       strcat(opaque, ", NV16");
+   }
+   if (caps.nOutputFormatMask & (1 << cudaVideoSurfaceFormat_P216_Opaque)) {
+       strcat(opaque, ", P216");
+   }
+#endif
+#endif
+
+   if (surface[0] == '\0') {
+       strcpy(surface, "Unknown");
+   } else {
+       /* Skip leading ", " separator */
+       memmove(surface, surface + 2, strlen(surface + 2) + 1);
+   }
+
+   if (opaque[0] == '\0') {
+       strcpy(opaque, "-");
+   } else {
+       /* Skip leading ", " separator */
+       memmove(opaque, opaque + 2, strlen(opaque + 2) + 1);
+   }
+
+   printf("%5s | %6s | %5d | %9d | %10d | %9d | %10d | %8d | %15s | %14s\n",
+          codec, format, bit_depth, caps.nMinWidth, caps.nMinHeight,
+          caps.nMaxWidth, caps.nMaxHeight, caps.nMaxMBCount, surface, opaque);
 
   return 0;
 }
@@ -203,11 +232,11 @@ int main(int argc, char *argv[])
     char name[255];
     CHECK_CU(cu->cuDeviceGetName(name, 255, dev));
     printf("Device %d: %s\n", i, name);
-    printf("-----------------------------------------------------------------------------------------------------\n");
+    printf("----------------------------------------------------------------------------------------------------------------------\n");
 
     CHECK_CU(cu->cuCtxCreate(&cuda_ctx, CU_CTX_SCHED_BLOCKING_SYNC, dev));
-    printf("Codec | Chroma | Depth | Min Width | Min Height | Max Width | Max Height |  Max MBs | Surface Formats\n");
-    printf("-----------------------------------------------------------------------------------------------------\n");
+    printf("Codec | Chroma | Depth | Min Width | Min Height | Max Width | Max Height |  Max MBs | Surface Formats | Opaque Formats\n");
+    printf("----------------------------------------------------------------------------------------------------------------------\n");
     for (int c = 0; c < cudaVideoCodec_NumCodecs; c++) {
       for (int f = 0; f < 4; f++) {
         for (int b = 8; b < 14; b += 2) {
@@ -215,7 +244,7 @@ int main(int argc, char *argv[])
         }
       }
     }
-    printf("-----------------------------------------------------------------------------------------------------\n\n");
+    printf("----------------------------------------------------------------------------------------------------------------------\n\n");
     cu->cuCtxPopCurrent(&dummy);
   }
 
